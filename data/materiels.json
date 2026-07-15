@@ -1,0 +1,74 @@
+[
+    {
+        "id": "M001",
+        "reference": "GR-CAT-320",
+        "designation": "Grue à tour 32m",
+        "categorie": "Levage",
+        "prix_jour": 450,
+        "prix_semaine": 2700,
+        "prix_mois": 9000,
+        "unite": "jour",
+        "stock": 3,
+        "description": "Grue à tour 32m, capacité 8 tonnes"
+    },
+    {
+        "id": "M002",
+        "reference": "EX-CAT-320D",
+        "designation": "Excavatrice Caterpillar 320D",
+        "categorie": "Terrassement",
+        "prix_jour": 380,
+        "prix_semaine": 2200,
+        "prix_mois": 7500,
+        "unite": "jour",
+        "stock": 5,
+        "description": "Excavatrice sur chenilles 20T"
+    },
+    {
+        "id": "M003",
+        "reference": "CS-VOLVO-210",
+        "designation": "Compacteur Vibrant VOLVO",
+        "categorie": "Compactage",
+        "prix_jour": 180,
+        "prix_semaine": 1000,
+        "prix_mois": 3500,
+        "unite": "jour",
+        "stock": 8,
+        "description": "Compacteur mono-bille 10T"
+    },
+    {
+        "id": "M004",
+        "reference": "EL-ATLAS-230",
+        "designation": "Élévateur télescopique 23m",
+        "categorie": "Levage",
+        "prix_jour": 280,
+        "prix_semaine": 1600,
+        "prix_mois": 5500,
+        "unite": "jour",
+        "stock": 4,
+        "description": "Nacelle télescopique 23m de hauteur"
+    },
+    {
+        "id": "M005",
+        "reference": "GE-CAT-450",
+        "designation": "Groupe électrogène 450 KVA",
+        "categorie": "Électricité",
+        "prix_jour": 120,
+        "prix_semaine": 700,
+        "prix_mois": 2400,
+        "unite": "jour",
+        "stock": 10,
+        "description": "Groupe électrogène diesel insonorisé"
+    },
+    {
+        "id": "M006",
+        "reference": "PP-PUTZ-740",
+        "designation": "Pompe à béton 40m",
+        "categorie": "Béton",
+        "prix_jour": 320,
+        "prix_semaine": 1900,
+        "prix_mois": 6500,
+        "unite": "jour",
+        "stock": 3,
+        "description": "Pompe à béton mobile flèche 40m"
+    }
+]

@@ -1,0 +1,111 @@
+{
+    "clients": [
+        {
+            "id": "C001",
+            "nom": "Groupe Bâtisseurs SARL",
+            "contact": "Mohamed Trabelsi",
+            "adresse": "Rue Ibn Khaldoun, Ariana",
+            "ville": "2080 Ariana",
+            "telephone": "+216 70 123 456",
+            "email": "m.trabelsi@batisseurs.tn",
+            "rc": "B987654321",
+            "tva": "TN87654321"
+        },
+        {
+            "id": "C002",
+            "nom": "CONSTRUC BTP",
+            "contact": "Sana Ben Amor",
+            "adresse": "Zone Industrielle Sfax",
+            "ville": "3000 Sfax",
+            "telephone": "+216 74 000 111",
+            "email": "s.benamor@construcbtp.tn",
+            "rc": "B112233445",
+            "tva": "TN11223344"
+        },
+        {
+            "id": "C003",
+            "nom": "IMMO PRESTIGE",
+            "contact": "Karim Bouzid",
+            "adresse": "Avenue Habib Bourguiba",
+            "ville": "1001 Tunis",
+            "telephone": "+216 71 999 888",
+            "email": "k.bouzid@immoprestige.tn",
+            "rc": "B556677889",
+            "tva": "TN55667788"
+        }
+    ],
+    "materiels": [
+        {
+            "id": "M001",
+            "reference": "GR-CAT-320",
+            "designation": "Grue à tour 32m",
+            "categorie": "Levage",
+            "prix_jour": 450.000,
+            "prix_semaine": 2700.000,
+            "prix_mois": 9000.000,
+            "unite": "jour",
+            "stock": 3,
+            "description": "Grue à tour 32m, capacité 8 tonnes"
+        },
+        {
+            "id": "M002",
+            "reference": "EX-CAT-320D",
+            "designation": "Excavatrice Caterpillar 320D",
+            "categorie": "Terrassement",
+            "prix_jour": 380.000,
+            "prix_semaine": 2200.000,
+            "prix_mois": 7500.000,
+            "unite": "jour",
+            "stock": 5,
+            "description": "Excavatrice sur chenilles 20T"
+        },
+        {
+            "id": "M003",
+            "reference": "CS-VOLVO-210",
+            "designation": "Compacteur Vibrant VOLVO",
+            "categorie": "Compactage",
+            "prix_jour": 180.000,
+            "prix_semaine": 1000.000,
+            "prix_mois": 3500.000,
+            "unite": "jour",
+            "stock": 8,
+            "description": "Compacteur mono-bille 10T"
+        },
+        {
+            "id": "M004",
+            "reference": "EL-ATLAS-230",
+            "designation": "Élévateur télescopique 23m",
+            "categorie": "Levage",
+            "prix_jour": 280.000,
+            "prix_semaine": 1600.000,
+            "prix_mois": 5500.000,
+            "unite": "jour",
+            "stock": 4,
+            "description": "Nacelle télescopique 23m de hauteur"
+        },
+        {
+            "id": "M005",
+            "reference": "GE-CAT-450",
+            "designation": "Groupe électrogène 450 KVA",
+            "categorie": "Électricité",
+            "prix_jour": 120.000,
+            "prix_semaine": 700.000,
+            "prix_mois": 2400.000,
+            "unite": "jour",
+            "stock": 10,
+            "description": "Groupe électrogène diesel insonorisé"
+        },
+        {
+            "id": "M006",
+            "reference": "PP-PUTZ-740",
+            "designation": "Pompe à béton 40m",
+            "categorie": "Béton",
+            "prix_jour": 320.000,
+            "prix_semaine": 1900.000,
+            "prix_mois": 6500.000,
+            "unite": "jour",
+            "stock": 3,
+            "description": "Pompe à béton mobile flèche 40m"
+        }
+    ]
+}

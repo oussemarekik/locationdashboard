@@ -1,0 +1,7 @@
+[{
+    "id": 1,
+    "email": "admin@example.com",
+    "name": "Admin",
+    "role": "admin",
+    "created_at": "2026-06-26"
+}]
