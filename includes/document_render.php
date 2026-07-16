@@ -3,6 +3,17 @@
 function renderDocument(array $doc, string $type): string {
     $client = $doc['client'] ?? [];
     $lignes = $doc['lignes'] ?? [];
+    $issuer = getIssuerProfile($doc['issuer_profile'] ?? 'societe');
+    $issuerName = $issuer['name'] ?: COMPANY_NAME;
+    $issuerLines = [];
+    if (!empty($issuer['address'])) $issuerLines[] = $issuer['address'];
+    if (!empty($issuer['city'])) $issuerLines[] = $issuer['city'];
+    $contactLine = trim((!empty($issuer['phone']) ? ('Tél: ' . $issuer['phone']) : '') . (!empty($issuer['email']) ? ((!empty($issuer['phone']) ? ' | ' : '') . $issuer['email']) : ''));
+    if ($contactLine !== '') $issuerLines[] = $contactLine;
+    if (!empty($issuer['rc'])) $issuerLines[] = $issuer['rc'];
+    if (!empty($issuer['tva'])) $issuerLines[] = $issuer['tva'];
+    if (!empty($issuer['cin'])) $issuerLines[] = $issuer['cin'];
+    if (!empty($issuer['rib'])) $issuerLines[] = $issuer['rib'];
     
     $typeLabels = [
         'devis'    => ['label' => 'DEVIS',             'prefix' => 'DV', 'color' => '#1a56db'],
@@ -31,6 +42,26 @@ function renderDocument(array $doc, string $type): string {
     $dateLoc = $doc['date_debut'] ?? '';
     $dateFin = $doc['date_fin'] ?? '';
     $dateLivraison = $doc['date_livraison'] ?? '';
+    $linkedFactureId = $doc['linked_facture_id'] ?? '';
+    $linkedLivraisonId = $doc['linked_livraison_id'] ?? '';
+    $linkedFactureNumero = '';
+    $linkedLivraisonNumero = '';
+    if ($linkedFactureId !== '') {
+        foreach (loadData('factures') as $linkedDoc) {
+            if (($linkedDoc['id'] ?? '') === $linkedFactureId) {
+                $linkedFactureNumero = $linkedDoc['numero'] ?? $linkedFactureId;
+                break;
+            }
+        }
+    }
+    if ($linkedLivraisonId !== '') {
+        foreach (loadData('livraisons') as $linkedDoc) {
+            if (($linkedDoc['id'] ?? '') === $linkedLivraisonId) {
+                $linkedLivraisonNumero = $linkedDoc['numero'] ?? $linkedLivraisonId;
+                break;
+            }
+        }
+    }
     $moyenTransport = $doc['moyen_transport'] ?? '';
     $nomCamion = $doc['nom_camion'] ?? '';
     $matriculeCamion = $doc['matricule_camion'] ?? '';
@@ -121,16 +152,18 @@ tfoot td{background:#f0f9ff;font-weight:700;border-top:2px solid <?= $color ?>;p
     <!-- EN-TÊTE -->
     <div class="doc-header">
         <div class="company-info">
-            <h2><?= COMPANY_NAME ?></h2>
-            <p><?= COMPANY_ADDRESS ?><br><?= COMPANY_CITY ?></p>
-            <p>Tél: <?= COMPANY_PHONE ?> &nbsp;|&nbsp; <?= COMPANY_EMAIL ?></p>
-            <p><?= COMPANY_RC ?> &nbsp;|&nbsp; <?= COMPANY_TVA ?></p>
+            <h2><?= htmlspecialchars($issuerName) ?></h2>
+            <?php foreach ($issuerLines as $line): ?>
+            <p><?= htmlspecialchars($line) ?></p>
+            <?php endforeach; ?>
         </div>
         <div class="doc-title-block">
             <div class="doc-type"><?= $t['label'] ?></div>
             <div class="doc-number"><?= htmlspecialchars($doc['numero'] ?? 'N/A') ?></div>
             <div class="doc-date">Date : <?= $dateDoc ?></div>
             <?php if($dateEch): ?><div class="doc-date">Échéance : <?= $dateEch ?></div><?php endif; ?>
+                <?php if($type === 'livraison' && $linkedFactureId): ?><div class="doc-date">Facture liée : <?= htmlspecialchars($linkedFactureNumero ?: $linkedFactureId) ?></div><?php endif; ?>
+                <?php if($type === 'facture' && $linkedLivraisonId): ?><div class="doc-date">BL lié : <?= htmlspecialchars($linkedLivraisonNumero ?: $linkedLivraisonId) ?></div><?php endif; ?>
         </div>
     </div>
 
@@ -138,8 +171,14 @@ tfoot td{background:#f0f9ff;font-weight:700;border-top:2px solid <?= $color ?>;p
     <div class="parties">
         <div class="partie-box">
             <div class="partie-label">📤 Émetteur</div>
-            <div class="partie-name"><?= COMPANY_NAME ?></div>
-            <p><?= COMPANY_ADDRESS ?><br><?= COMPANY_CITY ?></p>
+            <div class="partie-name"><?= htmlspecialchars($issuerName) ?></div>
+            <?php if(!empty($issuerLines)): ?>
+            <p>
+                <?php foreach ($issuerLines as $index => $line): ?>
+                <?= htmlspecialchars($line) ?><?php if ($index < count($issuerLines) - 1): ?><br><?php endif; ?>
+                <?php endforeach; ?>
+            </p>
+            <?php endif; ?>
         </div>
         <div class="partie-box">
             <div class="partie-label">📥 <?= $type==='commande' ? 'Fournisseur / Client' : 'Client' ?></div>
@@ -314,7 +353,7 @@ tfoot td{background:#f0f9ff;font-weight:700;border-top:2px solid <?= $color ?>;p
             <div class="sig-line">Lu et approuvé — <?= htmlspecialchars($client['nom'] ?? '') ?></div>
         </div>
         <div class="sig-block">
-            <div class="sig-label">Signature <?= COMPANY_NAME ?></div>
+            <div class="sig-label">Signature <?= htmlspecialchars($issuerName) ?></div>
             <div class="sig-line">Le Responsable Commercial</div>
         </div>
     </div>

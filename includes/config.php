@@ -2,6 +2,10 @@
 // ========================================
 // CONFIG GÉNÉRALE
 // ========================================
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+$dotenv->load();
 define('APP_NAME', 'Rekik Location');
 define('APP_VERSION', '1.0');
 
@@ -17,20 +21,55 @@ define('COMPANY_RIB', 'RIB : ');
 define('CURRENCY', 'DT');
 define('TVA_RATE', 19); // % TVA par défaut
 
-// MySQL connexion
-define('DB_HOST',  'sql112.byethost7.com');
-define('DB_PORT',  '3306');
-define('DB_NAME', 'b7_42277991_location');
-define('DB_USER', 'b7_42277991');
-define('DB_PASSWORD',  'rekik123@2025');
-define('DB_CHARSET', 'utf8mb4');
+define('ISSUER_PROFILES', [
+    'societe' => [
+        'label'  => 'Societe Rekik Location Maintenance et Service',
+        'name'   => 'Societe Rekik Location Maintenance et Service',
+        'address' => 'AV.Farhat Hached',
+        'city'    => '3000 SFAX, Tunisie',
+        'phone'   => '+216 26 316 326',
+        'email'   => 'oussema_-rekik@outlook.fr',
+        'rc'      => 'RC : B123456789',
+        'tva'     => 'TVA : 1854682T/A/M/000',
+        'rib'     => 'RIB : ',
+        'cin'     => '',
+    ],
+    'ilyes' => [
+        'label'  => 'Ilyes Rekik',
+        'name'   => 'Ilyes Rekik',
+        'address' => '',
+        'city'    => '',
+        'phone'   => '98 415 377',
+        'email'   => '',
+        'rc'      => '',
+        'tva'     => '',
+        'rib'     => '',
+        'cin'     => 'CIN : 01323060',
+    ],
+]);
 
-// define('DB_HOST',  'localhost');
+function getIssuerProfile(string $key = 'societe'): array {
+    $profiles = ISSUER_PROFILES;
+    if (!isset($profiles[$key])) {
+        $key = 'societe';
+    }
+    return $profiles[$key];
+}
+
+// MySQL connexion
+// define('DB_HOST',  'sql112.byethost7.com');
 // define('DB_PORT',  '3306');
-// define('DB_NAME', 'locations');
-// define('DB_USER', 'root');
-// define('DB_PASSWORD',  '');
+// define('DB_NAME', 'b7_42277991_location');
+// define('DB_USER', 'b7_42277991');
+// define('DB_PASSWORD',  'rekik123@2025');
 // define('DB_CHARSET', 'utf8mb4');
+
+define('DB_HOST', $_ENV['DB_HOST']);
+define('DB_PORT', $_ENV['DB_PORT']);
+define('DB_NAME', $_ENV['DB_NAME']);
+define('DB_USER', $_ENV['DB_USER']);
+define('DB_PASSWORD', $_ENV['DB_PASSWORD']);
+define('DB_CHARSET', $_ENV['DB_CHARSET']);
 
 // Chemins
 define('DATA_PATH', __DIR__ . '/../data/');

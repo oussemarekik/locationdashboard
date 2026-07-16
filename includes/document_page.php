@@ -24,6 +24,48 @@ $clients  = loadData('clients');
 $chantiers = loadData('chantiers');
 $materiels= loadData('materiels');
 
+function findDocumentIndexById(array $docs, string $id): ?int {
+    foreach ($docs as $index => $doc) {
+        if (($doc['id'] ?? '') === $id) {
+            return $index;
+        }
+    }
+    return null;
+}
+
+function buildFactureFromLivraison(array $livraison, array $existingFacture = []): array {
+    $facture = $existingFacture;
+    $facture['id'] = $facture['id'] ?? uniqid();
+    $facture['numero'] = $facture['numero'] ?? generateNumber('FA');
+    $facture['date'] = $livraison['date'] ?? date('Y-m-d');
+    $facture['issuer_profile'] = $livraison['issuer_profile'] ?? 'societe';
+    $facture['date_echeance'] = $facture['date_echeance'] ?? '';
+    $facture['date_debut'] = $livraison['date_debut'] ?? '';
+    $facture['date_fin'] = $livraison['date_fin'] ?? '';
+    $facture['date_livraison'] = $livraison['date_livraison'] ?? '';
+    $facture['chantier'] = $livraison['chantier'] ?? '';
+    $facture['lieu_livraison'] = $livraison['lieu_livraison'] ?? '';
+    $facture['moyen_transport'] = $livraison['moyen_transport'] ?? '';
+    $facture['nom_camion'] = $livraison['nom_camion'] ?? '';
+    $facture['matricule_camion'] = $livraison['matricule_camion'] ?? '';
+    $facture['client'] = $livraison['client'] ?? [];
+    $facture['lignes'] = $livraison['lignes'] ?? [];
+    $facture['remise'] = $livraison['remise'] ?? 0;
+    $facture['tva'] = $livraison['tva'] ?? TVA_RATE;
+    $facture['ht'] = $livraison['ht'] ?? 0;
+    $facture['ht_net'] = $livraison['ht_net'] ?? 0;
+    $facture['tva_val'] = $livraison['tva_val'] ?? 0;
+    $facture['timbre'] = $existingFacture['timbre'] ?? 1.0;
+    $facture['ttc'] = ($livraison['ttc'] ?? 0) + (($facture['timbre'] ?? 0) > 0 ? (float)$facture['timbre'] : 0.0);
+    $facture['notes'] = $existingFacture['notes'] ?? ($livraison['notes'] ?? '');
+    $facture['mode_reglement'] = $existingFacture['mode_reglement'] ?? '';
+    $facture['statut'] = $existingFacture['statut'] ?? 'brouillon';
+    $facture['created_at'] = $existingFacture['created_at'] ?? ($livraison['created_at'] ?? date('Y-m-d H:i:s'));
+    $facture['updated_at'] = date('Y-m-d H:i:s');
+    $facture['linked_livraison_id'] = $livraison['id'] ?? '';
+    return $facture;
+}
+
 // ---- ACTIONS POST ----
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $post = $_POST;
@@ -87,6 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'id'              => $post['doc_id'] ?: uniqid(),
             'numero'          => $post['numero'],
             'date'            => $post['date'] ?? date('Y-m-d'),
+            'issuer_profile'  => $post['issuer_profile'] ?? 'societe',
             'date_echeance'   => $post['date_echeance'] ?? '',
             'date_debut'      => $post['date_debut'] ?? '',
             'date_fin'        => $post['date_fin'] ?? '',
@@ -148,6 +191,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
 
             error_log('DOCUMENT_PAGE: Saving document id=' . $doc['id'] . ' numero=' . ($doc['numero'] ?? ''));
+
+            if ($docConfig['type'] === 'livraison') {
+                $factures = loadData('factures');
+                $linkedFactureId = trim((string)($doc['linked_facture_id'] ?? ''));
+                $linkedIndex = $linkedFactureId !== '' ? findDocumentIndexById($factures, $linkedFactureId) : null;
+
+                if ($linkedIndex === null) {
+                    foreach ($factures as $index => $facture) {
+                        if (($facture['linked_livraison_id'] ?? '') === $doc['id']) {
+                            $linkedIndex = $index;
+                            break;
+                        }
+                    }
+                }
+
+                $existingFacture = $linkedIndex !== null ? ($factures[$linkedIndex] ?? []) : [];
+                $facture = buildFactureFromLivraison($doc, $existingFacture);
+                $facture['linked_livraison_id'] = $doc['id'];
+                $doc['linked_facture_id'] = $facture['id'];
+                $docs[array_search($doc['id'], array_column($docs, 'id'), true)] = $doc;
+                if ($linkedIndex !== null) {
+                    $factures[$linkedIndex] = $facture;
+                } else {
+                    $factures[] = $facture;
+                }
+                saveData('factures', $factures);
+                saveData($dataKey, $docs);
+            }
+
             flash('success', $docConfig['label'] . ' enregistré avec succès.');
         $location = $docConfig['file'] . '?id=' . $doc['id'];
         if (!headers_sent()) {
@@ -217,6 +289,7 @@ if ($action === 'new' || ($id && $editDoc)):
     $doc = $editDoc ?? [
         'numero' => generateNumber(strtoupper($docConfig['prefix'])),
         'date'   => date('Y-m-d'),
+        'issuer_profile' => 'societe',
         'statut' => 'brouillon',
         'tva'    => TVA_RATE,
         'timbre' => $docConfig['type'] === 'facture' ? 1.0 : 0.0,
@@ -243,7 +316,7 @@ if ($action === 'new' || ($id && $editDoc)):
 
 
 
-<div style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
+<div class="doc-edit-grid" style="display:grid;grid-template-columns:2fr 1fr;gap:20px">
 
 <!-- COLONNE GAUCHE -->
 <div>
@@ -283,6 +356,16 @@ if ($action === 'new' || ($id && $editDoc)):
                     <?php endforeach; ?>
                 </select>
             </div>
+        </div>
+        <div class="form-group" style="margin-top:12px">
+            <label>Émetteur du document</label>
+            <select name="issuer_profile" class="form-control">
+                <?php foreach(ISSUER_PROFILES as $key => $issuer): ?>
+                <option value="<?= htmlspecialchars($key) ?>" <?= ($doc['issuer_profile'] ?? 'societe') === $key ? 'selected' : '' ?>>
+                    <?= htmlspecialchars($issuer['label']) ?>
+                </option>
+                <?php endforeach; ?>
+            </select>
         </div>
         <div class="form-grid" style="margin-top:12px">
             <div class="form-group">

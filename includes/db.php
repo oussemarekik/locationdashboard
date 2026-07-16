@@ -156,6 +156,10 @@ function loadDataFromMysql(PDO $pdo, string $file): ?array {
             $row['lignes'] = decodeJsonField($row['lignes_json'] ?? null);
             unset($row['client_json'], $row['lignes_json']);
 
+            $row['issuer_profile'] = $row['issuer_profile'] ?? 'societe';
+            $row['linked_facture_id'] = $row['linked_facture_id'] ?? '';
+            $row['linked_livraison_id'] = $row['linked_livraison_id'] ?? '';
+
             foreach (['remise', 'tva', 'ht', 'ht_net', 'tva_val', 'ttc'] as $numericField) {
                 if (isset($row[$numericField])) {
                     $row[$numericField] = (float)$row[$numericField];
@@ -313,12 +317,15 @@ function saveDataToMysql(PDO $pdo, string $file, array $data): ?bool {
         }
 
         if (in_array($file, ['devis', 'commandes', 'livraisons', 'factures'], true)) {
-            $stmt = $pdo->prepare('INSERT INTO ' . $table . ' (id, numero, date, date_echeance, date_debut, date_fin, date_livraison, chantier, lieu_livraison, moyen_transport, nom_camion, matricule_camion, client_json, lignes_json, remise, tva, ht, ht_net, tva_val, timbre, ttc, statut, notes, mode_reglement, created_at, updated_at) VALUES (:id, :numero, :date, :date_echeance, :date_debut, :date_fin, :date_livraison, :chantier, :lieu_livraison, :moyen_transport, :nom_camion, :matricule_camion, :client_json, :lignes_json, :remise, :tva, :ht, :ht_net, :tva_val, :timbre, :ttc, :statut, :notes, :mode_reglement, :created_at, :updated_at)');
+            $stmt = $pdo->prepare('INSERT INTO ' . $table . ' (id, numero, date, issuer_profile, linked_facture_id, linked_livraison_id, date_echeance, date_debut, date_fin, date_livraison, chantier, lieu_livraison, moyen_transport, nom_camion, matricule_camion, client_json, lignes_json, remise, tva, ht, ht_net, tva_val, timbre, ttc, statut, notes, mode_reglement, created_at, updated_at) VALUES (:id, :numero, :date, :issuer_profile, :linked_facture_id, :linked_livraison_id, :date_echeance, :date_debut, :date_fin, :date_livraison, :chantier, :lieu_livraison, :moyen_transport, :nom_camion, :matricule_camion, :client_json, :lignes_json, :remise, :tva, :ht, :ht_net, :tva_val, :timbre, :ttc, :statut, :notes, :mode_reglement, :created_at, :updated_at)');
             foreach (normalizeRows($data) as $row) {
                 $stmt->execute([
                     ':id' => $row['id'] ?? uniqid(),
                     ':numero' => $row['numero'] ?? '',
                     ':date' => $row['date'] ?? date('Y-m-d'),
+                    ':issuer_profile' => $row['issuer_profile'] ?? 'societe',
+                    ':linked_facture_id' => $row['linked_facture_id'] ?? '',
+                    ':linked_livraison_id' => $row['linked_livraison_id'] ?? '',
                     ':date_echeance' => $row['date_echeance'] ?? '',
                     ':date_debut' => $row['date_debut'] ?? '',
                     ':date_fin' => $row['date_fin'] ?? '',
@@ -518,6 +525,7 @@ CREATE TABLE IF NOT EXISTS documents_devis (
     tva_val DECIMAL(12,3) NOT NULL DEFAULT 0,
     timbre DECIMAL(12,3) NOT NULL DEFAULT 0,
     ttc DECIMAL(12,3) NOT NULL DEFAULT 0,
+    issuer_profile VARCHAR(50) NOT NULL DEFAULT 'societe',
     statut VARCHAR(50) NOT NULL DEFAULT 'brouillon',
     notes TEXT NULL,
     mode_reglement VARCHAR(120) NULL,
@@ -535,6 +543,18 @@ SQL);
     ensureColumnExists($pdo, 'documents_commandes', 'timbre', 'DECIMAL(12,3) NOT NULL DEFAULT 0');
     ensureColumnExists($pdo, 'documents_livraisons', 'timbre', 'DECIMAL(12,3) NOT NULL DEFAULT 0');
     ensureColumnExists($pdo, 'documents_factures', 'timbre', 'DECIMAL(12,3) NOT NULL DEFAULT 0');
+    ensureColumnExists($pdo, 'documents_devis', 'issuer_profile', "VARCHAR(50) NOT NULL DEFAULT 'societe'");
+    ensureColumnExists($pdo, 'documents_commandes', 'issuer_profile', "VARCHAR(50) NOT NULL DEFAULT 'societe'");
+    ensureColumnExists($pdo, 'documents_livraisons', 'issuer_profile', "VARCHAR(50) NOT NULL DEFAULT 'societe'");
+    ensureColumnExists($pdo, 'documents_factures', 'issuer_profile', "VARCHAR(50) NOT NULL DEFAULT 'societe'");
+    ensureColumnExists($pdo, 'documents_devis', 'linked_facture_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_commandes', 'linked_facture_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_livraisons', 'linked_facture_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_factures', 'linked_facture_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_devis', 'linked_livraison_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_commandes', 'linked_livraison_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_livraisons', 'linked_livraison_id', 'VARCHAR(80) NULL');
+    ensureColumnExists($pdo, 'documents_factures', 'linked_livraison_id', 'VARCHAR(80) NULL');
     ensureColumnExists($pdo, 'documents_devis', 'date_livraison', 'DATE NULL');
     ensureColumnExists($pdo, 'documents_commandes', 'date_livraison', 'DATE NULL');
     ensureColumnExists($pdo, 'documents_livraisons', 'date_livraison', 'DATE NULL');

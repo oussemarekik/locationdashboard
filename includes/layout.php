@@ -33,10 +33,11 @@ function renderHeader(string $title = '', string $active = ''): void {
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);display:flex;min-height:100vh;font-size:14px}
+.nav-toggle,.nav-backdrop{display:none}
 
 /* ---- SIDEBAR ---- */
 .sidebar{width:240px;min-height:100vh;background:var(--sidebar-bg);display:flex;flex-direction:column;position:fixed;top:0;left:0;z-index:100;transition:.3s}
-.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid #1e293b}
+.sidebar-logo{padding:20px 20px 16px;border-bottom:1px solid #1e293b;background:linear-gradient(180deg,rgba(255,255,255,.03),transparent)}
 .sidebar-logo h1{font-size:16px;font-weight:700;color:#fff;letter-spacing:.5px}
 .sidebar-logo small{font-size:11px;color:var(--sidebar-text);font-family:'JetBrains Mono',monospace}
 .sidebar nav{flex:1;padding:12px 0;overflow-y:auto}
@@ -51,7 +52,12 @@ body{font-family:'Inter',sans-serif;background:var(--bg);color:var(--text);displ
 .main{margin-left:240px;flex:1;display:flex;flex-direction:column;min-height:100vh}
 .topbar{background:var(--card);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow)}
 .topbar h2{font-size:18px;font-weight:600;color:var(--text)}
-.topbar-actions{display:flex;gap:8px;align-items:center}
+.topbar-actions{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.topbar-left{display:flex;align-items:center;gap:12px;min-width:0}
+.nav-toggle{width:40px;height:40px;border:1px solid var(--border);border-radius:12px;background:linear-gradient(180deg,#fff,#f8fafc);color:var(--text);cursor:pointer;align-items:center;justify-content:center;flex:0 0 auto;box-shadow:var(--shadow)}
+.nav-toggle svg{width:20px;height:20px}
+.topbar-home{display:inline-flex;align-items:center;gap:6px}
+.topbar-home svg{width:14px;height:14px}
 .content{padding:24px 28px;flex:1}
 
 /* ---- BUTTONS ---- */
@@ -125,12 +131,51 @@ textarea.form-control{resize:vertical;min-height:80px}
 }
 @media(max-width:900px){
     .stats-grid{grid-template-columns:1fr 1fr}
-    .sidebar{transform:translateX(-240px)}
     .main{margin-left:0}
+    .content{padding:18px 16px}
+    .topbar{padding:12px 16px;gap:12px;flex-wrap:wrap}
+    .topbar h2{font-size:16px}
+    .topbar-actions{width:100%;justify-content:flex-start}
+    .card-header{flex-direction:column;align-items:flex-start;gap:10px}
+    .btn{justify-content:center}
+}
+@media(max-width:768px){
+    body{display:block}
+    .nav-toggle,.nav-backdrop{display:flex}
+    .sidebar{transform:translateX(-110%);width:min(92vw,340px);margin:10px;max-height:calc(100vh - 20px);border-radius:24px;box-shadow:0 20px 50px rgba(15,23,42,.35);border:1px solid rgba(148,163,184,.18);overflow:hidden}
+    body.nav-open .sidebar{transform:translateX(0)}
+    .nav-backdrop{inset:0;background:rgba(15,23,42,.45);z-index:90}
+    body.nav-open .nav-backdrop{display:block}
+    .sidebar-logo{padding:18px 18px 14px;background:linear-gradient(135deg,#111827,#0f172a 70%,#1e293b)}
+    .sidebar-logo h1{font-size:15px}
+    .sidebar nav{padding:10px 0 14px}
+    .nav-section{padding:14px 16px 6px;color:#8aa0c7}
+    .nav-item{margin:0 12px 4px;border-radius:14px;border-left:0;border:1px solid transparent;padding:11px 14px;background:rgba(255,255,255,.02)}
+    .nav-item:hover{background:rgba(255,255,255,.06);color:#fff}
+    .nav-item.active{background:rgba(26,86,219,.22);color:#fff;border-color:rgba(96,165,250,.25);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
+    .sidebar-footer{padding:14px 18px;color:#64748b;background:rgba(255,255,255,.02)}
+    .stats-grid,.form-grid,.form-grid-3{grid-template-columns:1fr}
+    .doc-edit-grid{grid-template-columns:1fr!important}
+    .content{padding:14px 12px}
+    .card{border-radius:16px}
+    .card-body{padding:16px}
+    .form-control{font-size:16px;border-radius:10px}
+    .btn{width:100%;border-radius:10px}
+    .btn-sm{width:auto}
+    table{min-width:680px}
+    .topbar{padding:12px 12px 12px 10px;background:linear-gradient(180deg,#ffffff 0%,#fbfdff 100%)}
+    .topbar-left{width:100%;gap:10px}
+    .topbar h2{font-size:15px;line-height:1.2}
+    .nav-toggle{width:42px;height:42px;flex:0 0 42px}
+    .topbar-actions{flex-direction:column;align-items:stretch;width:100%}
+    .topbar-actions > *{width:100%}
+    .alert{margin-bottom:14px}
+    .topbar-home{justify-content:center}
 }
 </style>
 </head>
 <body>
+<div class="nav-backdrop" id="navBackdrop"></div>
 
 <!-- SIDEBAR -->
 <aside class="sidebar">
@@ -178,8 +223,17 @@ textarea.form-control{resize:vertical;min-height:80px}
 <!-- MAIN -->
 <div class="main">
 <div class="topbar">
-    <h2><?= htmlspecialchars($title) ?></h2>
+    <div class="topbar-left">
+        <button type="button" class="nav-toggle" id="navToggle" aria-label="Ouvrir la navigation" aria-expanded="false">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+        </button>
+        <div style="display:flex;flex-direction:column;min-width:0">
+            <h2><?= htmlspecialchars($title) ?></h2>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Accès rapide mobile et bureau</div>
+        </div>
+    </div>
     <div class="topbar-actions">
+        <a href="index.php" class="btn btn-light btn-sm topbar-home"><?= icon('home') ?> Retour menu</a>
         <?php if($flash): ?>
         <div class="alert alert-<?= $flash['type']==='success'?'success':($flash['type']==='error'?'error':'info') ?>" style="margin:0;padding:6px 14px">
             <?= htmlspecialchars($flash['msg']) ?>
@@ -210,6 +264,28 @@ function renderFooter(): void {
 <script>
 // Auto-dismiss alerts
 setTimeout(()=>document.querySelectorAll('.alert').forEach(a=>a.style.opacity='0'),4000);
+
+const navToggle = document.getElementById('navToggle');
+const navBackdrop = document.getElementById('navBackdrop');
+function closeNav() {
+    document.body.classList.remove('nav-open');
+    if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+}
+function openNav() {
+    document.body.classList.add('nav-open');
+    if (navToggle) navToggle.setAttribute('aria-expanded', 'true');
+}
+if (navToggle) {
+    navToggle.addEventListener('click', () => {
+        if (document.body.classList.contains('nav-open')) closeNav(); else openNav();
+    });
+}
+if (navBackdrop) {
+    navBackdrop.addEventListener('click', closeNav);
+}
+document.querySelectorAll('.sidebar a').forEach(link => link.addEventListener('click', () => {
+    if (window.innerWidth <= 768) closeNav();
+}));
 </script>
 </body>
 </html>
@@ -220,6 +296,7 @@ setTimeout(()=>document.querySelectorAll('.alert').forEach(a=>a.style.opacity='0
 function icon(string $name): string {
     $icons = [
         'dashboard' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>',
+        'home'      => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v11h14V10"/><path d="M9 21v-6h6v6"/></svg>',
         'devis'     => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14,2 14,8 20,8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10,9 9,9 8,9"/></svg>',
         'commandes' => '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 17H7A5 5 0 017 7h10a5 5 0 015 5"/><path d="M16 3l4 4-4 4"/><line x1="21" y1="7" x2="10" y2="7"/><path d="M21 21v-4h-4"/><path d="M21 17H11a2 2 0 000 4h10v-4z"/></svg>',
         'livraisons'=> '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16,8 20,8 23,11 23,16 16,16 16,8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>',
