@@ -17,8 +17,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Install Composer dependencies
-        run: composer install --no-dev --prefer-dist --no-progress
+      
 
       - name: Deploy to ByetHost FTP
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
